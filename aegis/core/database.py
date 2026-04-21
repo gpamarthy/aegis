@@ -2,8 +2,7 @@ import json
 import uuid
 import pathlib
 import aiosqlite
-from typing import List
-from aegis.core.findings import ScanResult, Finding
+from aegis.core.findings import ScanResult
 from aegis.core.logger import get_logger
 
 logger = get_logger("core.database")

@@ -232,6 +232,7 @@ class DirectInjectionScanner(BaseScanner):
 
     async def run(self) -> list[Finding]:
         """Execute all direct injection payloads and return findings."""
+        print(f"DEBUG: {self.name} starting run...")
         for technique, payload, indicators, severity in PAYLOADS:
             resp = await self._send(payload)
             if resp is None:
@@ -239,6 +240,7 @@ class DirectInjectionScanner(BaseScanner):
                 break
 
             if self._check_success(resp.content, indicators):
+                print(f"DEBUG: {self.name} - INJECTION SUCCESS for {technique}!")
                 impact = _IMPACT_BY_TECHNIQUE.get(technique, _DEFAULT_IMPACT)
                 self.add_finding(
                     title=f"Direct prompt injection succeeded ({technique})",

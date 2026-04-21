@@ -10,25 +10,22 @@ DEFAULT_ENDPOINT = "https://api.openai.com/v1/chat/completions"
 
 
 class OpenAIConnector(BaseConnector):
-    """Connector for OpenAI-compatible chat completions API."""
-
     def __init__(self, config: TargetConfig):
         super().__init__(config)
         self.endpoint = config.endpoint or DEFAULT_ENDPOINT
         self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:
-        if self._client is not None and self._client.is_closed:
-            self._client = None
-        if self._client is None:
+        if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(timeout=60.0)
         return self._client
 
-    def _build_headers(self) -> dict[str, str]:
+    def _build_headers(self) -> dict:
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}",
         }
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
         headers.update(self.config.headers)
         return headers
 
@@ -63,14 +60,18 @@ class OpenAIConnector(BaseConnector):
             data = resp.json()
             return self._parse_response(data)
         except httpx.HTTPStatusError as exc:
-            logger.error("OpenAI HTTP error", status_code=exc.response.status_code, response_text=exc.response.text[:500])
+            logger.error(
+                "OpenAI API error",
+                status_code=exc.response.status_code,
+                response_text=exc.response.text[:500],
+            )
             return LLMResponse(raw={"error": exc.response.text[:500]})
         except Exception as exc:
             logger.error("OpenAI request failed", error=str(exc))
-            return LLMResponse(raw={"error": str(exc)})
+            return LLMResponse()
 
     async def send_single(self, prompt: str, system: str | None = None) -> LLMResponse:
-        messages: list[dict] = []
+        messages = []
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
@@ -80,43 +81,18 @@ class OpenAIConnector(BaseConnector):
         try:
             choice = data["choices"][0]
             message = choice["message"]
-            content = message.get("content", "") or ""
             usage = data.get("usage", {})
 
-            tool_calls = None
-            if message.get("tool_calls"):
-                tool_calls = [
-                    {
-                        "id": tc.get("id", ""),
-                        "type": tc.get("type", "function"),
-                        "function": {
-                            "name": tc.get("function", {}).get("name", ""),
-                            "arguments": tc.get("function", {}).get("arguments", ""),
-                        },
-                    }
-                    for tc in message["tool_calls"]
-                ]
-            elif message.get("function_call"):
-                tool_calls = [
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": message["function_call"].get("name", ""),
-                            "arguments": message["function_call"].get("arguments", ""),
-                        },
-                    }
-                ]
-
             return LLMResponse(
-                content=content,
+                content=message.get("content", ""),
                 input_tokens=usage.get("prompt_tokens", 0),
                 output_tokens=usage.get("completion_tokens", 0),
-                model=data.get("model", self.config.model),
+                model=data.get("model", ""),
                 finish_reason=choice.get("finish_reason", ""),
                 raw=data,
-                tool_calls=tool_calls,
+                tool_calls=message.get("tool_calls"),
             )
-        except (KeyError, IndexError, TypeError) as exc:
+        except (KeyError, IndexError) as exc:
             logger.error("Failed to parse OpenAI response", error=str(exc))
             return LLMResponse(raw=data)
 

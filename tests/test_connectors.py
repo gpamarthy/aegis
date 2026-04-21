@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from aegis.connectors.base_llm import BaseConnector, LLMResponse
+from aegis.connectors.base_llm import LLMResponse
 from aegis.connectors.registry import get_connector, _ensure_loaded, _PROVIDERS
 from aegis.core.scan_config import TargetConfig
 

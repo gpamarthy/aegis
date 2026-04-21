@@ -1,10 +1,15 @@
 import abc
-from aegis.connectors.base_llm import BaseConnector
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+from aegis.connectors.base_llm import BaseConnector, LLMResponse
 from aegis.core.scan_config import ScanConfig
 from aegis.core.findings import Finding, OWASPCategory, Severity, ComplianceMapping
 from aegis.core.cost_tracker import CostTracker
 from aegis.core.rate_limiter import RateLimiter
 from aegis.core.session import ConversationSession, Role
+from aegis.core.logger import get_logger
+
+logger = get_logger("scanners.base")
 
 
 class BaseScanner(abc.ABC):
@@ -58,40 +63,69 @@ class BaseScanner(abc.ABC):
     def _default_compliance(self) -> ComplianceMapping:
         return ComplianceMapping(owasp=self.category)
 
-    async def _send(self, prompt: str, system: str | None = None):
-        # TODO: add retry with exponential backoff on transient failures
+    async def _send(self, prompt: str, system: str | None = None) -> LLMResponse | None:
+        """Send a single prompt to the LLM with exponential backoff retries."""
+        if self.cost_tracker.over_budget:
+            print(f"DEBUG: {self.name} - over budget!")
+            return None
+
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_exponential(multiplier=1, min=2, max=10),
+            retry=retry_if_exception_type((Exception,)),
+            reraise=True,
+        )
+        async def _attempt():
+            await self.rate_limiter.acquire(source=self.name)
+            return await self.connector.send_single(prompt, system=system)
+
+        try:
+            resp = await _attempt()
+            if resp is None:
+                print(f"DEBUG: {self.name} - connector returned None")
+                return None
+            self.cost_tracker.record(
+                model=self.connector.config.model,
+                input_tokens=resp.input_tokens,
+                output_tokens=resp.output_tokens,
+                scanner=self.name,
+            )
+            return resp
+        except Exception as exc:
+            logger.error("All retry attempts failed for scanner '%s': %s", self.name, exc)
+            print(f"DEBUG: {self.name} - all retries failed: {exc}")
+            return None
+
+    async def _send_conversation(self, session: ConversationSession, prompt: str) -> LLMResponse | None:
+        """Send a message as part of a multi-turn conversation with retries."""
         if self.cost_tracker.over_budget:
             return None
-        await self.rate_limiter.acquire()
-        resp = await self.connector.send_single(prompt, system=system)
-        self.cost_tracker.record(
-            model=self.connector.config.model,
-            input_tokens=resp.input_tokens,
-            output_tokens=resp.output_tokens,
-            scanner=self.name,
+
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_exponential(multiplier=1, min=2, max=10),
+            retry=retry_if_exception_type((Exception,)),
+            reraise=True,
         )
-        return resp
+        async def _attempt():
+            await self.rate_limiter.acquire()
+            return await self.connector.send(session.get_messages_for_api())
 
-    async def _send_conversation(self, session: ConversationSession, prompt: str):
-        """Send a message as part of a multi-turn conversation.
-
-        Appends the user message to the session, sends the full history
-        to the connector, appends the assistant response, and returns it.
-        """
-        if self.cost_tracker.over_budget:
+        try:
+            session.add_message(Role.USER, prompt)
+            resp = await _attempt()
+            session.add_message(Role.ASSISTANT, resp.content, tokens=resp.output_tokens)
+            self.cost_tracker.record(
+                model=self.connector.config.model,
+                input_tokens=resp.input_tokens,
+                output_tokens=resp.output_tokens,
+                scanner=self.name,
+            )
+            session.total_tokens += resp.input_tokens + resp.output_tokens
+            return resp
+        except Exception as exc:
+            logger.error("All retry attempts failed for multi-turn in '%s': %s", self.name, exc)
             return None
-        await self.rate_limiter.acquire()
-        session.add_message(Role.USER, prompt)
-        resp = await self.connector.send(session.get_messages_for_api())
-        session.add_message(Role.ASSISTANT, resp.content, tokens=resp.output_tokens)
-        self.cost_tracker.record(
-            model=self.connector.config.model,
-            input_tokens=resp.input_tokens,
-            output_tokens=resp.output_tokens,
-            scanner=self.name,
-        )
-        session.total_tokens += resp.input_tokens + resp.output_tokens
-        return resp
 
     def _new_session(self) -> ConversationSession:
         """Create a fresh conversation session for multi-turn attacks."""

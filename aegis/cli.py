@@ -70,6 +70,10 @@ def list_scanners():
 @click.option("--scanners", "scanner_names", default="", help="Comma-separated scanner names (overrides profile)")
 @click.option("--concurrency", default=5, type=int, help="Max concurrent scanner tasks")
 @click.option("--timeout", default=30.0, type=float, help="Per-request timeout in seconds")
+@click.option("--header", "-H", multiple=True, help="Custom HTTP header (e.g. X-My-Header=Value)")
+@click.option("--query", "-Q", multiple=True, help="Custom Query Parameter (e.g. api-version=2024-02-01)")
+@click.option("--req-map", multiple=True, help="Request field mapping (e.g. messages_field=input)")
+@click.option("--resp-map", multiple=True, help="Response field mapping (e.g. content_path=output.text)")
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
 def scan(
     target: str,
@@ -83,6 +87,10 @@ def scan(
     scanner_names: str,
     concurrency: int,
     timeout: float,
+    header: list[str],
+    query: list[str],
+    req_map: list[str],
+    resp_map: list[str],
     verbose: bool,
 ):
     """Run a security scan against an LLM endpoint."""
@@ -101,6 +109,29 @@ def scan(
         model=model,
         api_key=api_key,
     )
+
+    # Parse headers from KEY=VALUE
+    for item in header:
+        if "=" in item:
+            k, v = item.split("=", 1)
+            target_config.headers[k.strip()] = v.strip()
+
+    # Parse query params from KEY=VALUE
+    for item in query:
+        if "=" in item:
+            k, v = item.split("=", 1)
+            target_config.query_params[k.strip()] = v.strip()
+
+    # Parse mappings from KEY=VALUE
+    for item in req_map:
+        if "=" in item:
+            k, v = item.split("=", 1)
+            target_config.request_mapping[k.strip()] = v.strip()
+
+    for item in resp_map:
+        if "=" in item:
+            k, v = item.split("=", 1)
+            target_config.response_mapping[k.strip()] = v.strip()
 
     selected_scanners = [s.strip() for s in scanner_names.split(",") if s.strip()] if scanner_names else []
 
@@ -167,7 +198,6 @@ def scan(
 
 
 def _print_summary(result):
-    from aegis.core.findings import ScanResult
 
     console.print()
     console.rule("[bold cyan]Scan Results")

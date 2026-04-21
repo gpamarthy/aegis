@@ -1,7 +1,7 @@
 import enum
 import time
 import uuid
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Severity(str, enum.Enum):
@@ -25,18 +25,20 @@ class OWASPCategory(str, enum.Enum):
     LLM10 = "LLM10: Unbounded Consumption"
 
 
-@dataclass
-class ComplianceMapping:
+class ComplianceMapping(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     owasp: OWASPCategory
-    eu_ai_act: list[str] = field(default_factory=list)
-    nist_ai_rmf: list[str] = field(default_factory=list)
-    nist_ai_600: list[str] = field(default_factory=list)
-    mitre_atlas: list[str] = field(default_factory=list)
+    eu_ai_act: list[str] = Field(default_factory=list)
+    nist_ai_rmf: list[str] = Field(default_factory=list)
+    nist_ai_600: list[str] = Field(default_factory=list)
+    mitre_atlas: list[str] = Field(default_factory=list)
 
 
-@dataclass
-class Finding:
-    id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+class Finding(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     title: str = ""
     description: str = ""
     severity: Severity = Severity.INFO
@@ -47,45 +49,35 @@ class Finding:
     evidence: str = ""
     remediation: str = ""
     compliance: ComplianceMapping | None = None
-    timestamp: float = field(default_factory=time.time)
+    timestamp: float = Field(default_factory=time.time)
     scanner_name: str = ""
     tokens_used: int = 0
     cost_usd: float = 0.0
 
     def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "title": self.title,
-            "description": self.description,
-            "severity": self.severity.value,
-            "category": self.category.value,
-            "technique": self.technique,
-            "payload": self.payload,
-            "response": self.response[:500],
-            "evidence": self.evidence,
-            "remediation": self.remediation,
-            "compliance": {
-                "owasp": self.compliance.owasp.value,
-                "eu_ai_act": self.compliance.eu_ai_act,
-                "nist_ai_rmf": self.compliance.nist_ai_rmf,
-            } if self.compliance else {},
-            "timestamp": self.timestamp,
-            "scanner_name": self.scanner_name,
-            "tokens_used": self.tokens_used,
-            "cost_usd": self.cost_usd,
-        }
+        """Compatibility method for legacy dictionary access."""
+        data = self.model_dump()
+        # Ensure enum values are used in the dict
+        data["severity"] = self.severity.value
+        data["category"] = self.category.value
+        if self.compliance:
+            data["compliance"]["owasp"] = self.compliance.owasp.value
+        # Truncate response for dictionary summary
+        data["response"] = self.response[:500]
+        return data
 
 
-@dataclass
-class ScanResult:
+class ScanResult(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     target: str = ""
     profile: str = "quick"
-    findings: list[Finding] = field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
     total_tokens: int = 0
     total_cost_usd: float = 0.0
     duration_seconds: float = 0.0
-    scanners_run: list[str] = field(default_factory=list)
-    start_time: float = field(default_factory=time.time)
+    scanners_run: list[str] = Field(default_factory=list)
+    start_time: float = Field(default_factory=time.time)
     end_time: float = 0.0
 
     @property

@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Any
 
@@ -12,6 +11,9 @@ logger = logging.getLogger(__name__)
 # Default field mapping assumes an OpenAI-compatible API
 DEFAULT_REQUEST_MAPPING = {
     "messages_field": "messages",
+    "prompt_field": None,  # If set, sends the last user message as a string
+    "role_field": "role",  # Field name for the message role (e.g. "role" or "actor")
+    "content_field": "content",  # Field name for the message text (e.g. "content" or "text")
     "model_field": "model",
     "max_tokens_field": "max_tokens",
 }
@@ -25,10 +27,7 @@ DEFAULT_RESPONSE_MAPPING = {
 
 
 def _resolve_path(data: dict | list, path: str) -> Any:
-    """Walk a dot-separated path into a nested dict/list structure.
-
-    Example: _resolve_path(data, "choices.0.message.content")
-    """
+    """Walk a dot-separated path into a nested dict/list structure."""
     current: Any = data
     for key in path.split("."):
         if current is None:
@@ -45,28 +44,41 @@ def _resolve_path(data: dict | list, path: str) -> Any:
     return current
 
 
+def _set_path(data: dict, path: str, value: Any) -> None:
+    """Set a value in a nested dict/list using a dot-separated path."""
+    parts = path.split(".")
+    current = data
+    for i, part in enumerate(parts[:-1]):
+        next_part = parts[i + 1]
+        
+        # Determine if next part is an index (list) or key (dict)
+        is_list = next_part.isdigit()
+        
+        if part.isdigit():
+            idx = int(part)
+            # This case shouldn't really happen for the first part of a dict input,
+            # but for completeness:
+            while len(current) <= idx:
+                current.append({})
+            current = current[idx]
+        else:
+            if part not in current or not isinstance(current[part], (dict, list)):
+                current[part] = [] if is_list else {}
+            current = current[part]
+            
+    # Final assignment
+    last_part = parts[-1]
+    if last_part.isdigit():
+        idx = int(last_part)
+        while len(current) <= idx:
+            current.append(None)
+        current[idx] = value
+    else:
+        current[last_part] = value
+
+
 class GenericHTTPConnector(BaseConnector):
-    """Connector for any HTTP endpoint with configurable field mapping.
-
-    Field mappings are stored in TargetConfig.headers under special keys
-    prefixed with ``_aegis_req_`` and ``_aegis_resp_``, or can be passed
-    via the ``request_mapping`` / ``response_mapping`` kwargs on the
-    constructor (preferred).
-
-    Example usage::
-
-        config = TargetConfig(
-            endpoint="https://my-llm.example.com/generate",
-            provider="http",
-            model="my-model",
-            api_key="secret",
-        )
-        connector = GenericHTTPConnector(
-            config,
-            request_mapping={"messages_field": "prompt", "model_field": "model_name"},
-            response_mapping={"content_path": "result.text"},
-        )
-    """
+    """Connector for any HTTP endpoint with configurable field mapping."""
 
     def __init__(
         self,
@@ -76,8 +88,16 @@ class GenericHTTPConnector(BaseConnector):
     ):
         super().__init__(config)
         self.endpoint = config.endpoint
-        self.request_mapping = {**DEFAULT_REQUEST_MAPPING, **(request_mapping or {})}
-        self.response_mapping = {**DEFAULT_RESPONSE_MAPPING, **(response_mapping or {})}
+        self.request_mapping = {
+            **DEFAULT_REQUEST_MAPPING,
+            **(config.request_mapping or {}),
+            **(request_mapping or {}),
+        }
+        self.response_mapping = {
+            **DEFAULT_RESPONSE_MAPPING,
+            **(config.response_mapping or {}),
+            **(response_mapping or {}),
+        }
         self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:
@@ -89,7 +109,6 @@ class GenericHTTPConnector(BaseConnector):
         headers: dict[str, str] = {"Content-Type": "application/json"}
         if self.config.api_key:
             headers["Authorization"] = f"Bearer {self.config.api_key}"
-        # Include user-provided headers, but skip internal _aegis_ keys
         for k, v in self.config.headers.items():
             if not k.startswith("_aegis_"):
                 headers[k] = v
@@ -97,26 +116,49 @@ class GenericHTTPConnector(BaseConnector):
 
     async def send(self, messages: list[dict], **kwargs) -> LLMResponse:
         client = self._get_client()
-
         payload: dict[str, Any] = {}
-        payload[self.request_mapping["messages_field"]] = messages
-        if self.request_mapping.get("model_field"):
-            payload[self.request_mapping["model_field"]] = self.config.model
-        if self.request_mapping.get("max_tokens_field"):
-            payload[self.request_mapping["max_tokens_field"]] = kwargs.get(
-                "max_tokens", self.config.max_tokens
-            )
+        
+        # 1. Map messages or prompt (supports nesting via dots)
+        if self.request_mapping.get("prompt_field"):
+            last_msg = ""
+            for msg in reversed(messages):
+                if msg.get("role") == "user":
+                    last_msg = msg.get("content", "")
+                    break
+            _set_path(payload, self.request_mapping["prompt_field"], last_msg)
+        else:
+            # Map role/content in history if needed
+            role_f = self.request_mapping.get("role_field", "role")
+            cont_f = self.request_mapping.get("content_field", "content")
+            
+            mapped_messages = []
+            for m in messages:
+                mapped_messages.append({
+                    role_f: m.get("role"),
+                    cont_f: m.get("content")
+                })
+            _set_path(payload, self.request_mapping["messages_field"], mapped_messages)
 
-        # Merge any extra payload keys the caller wants
+        # 2. Map model name
+        if self.request_mapping.get("model_field"):
+            _set_path(payload, self.request_mapping["model_field"], self.config.model)
+
+        # 3. Map max tokens
+        if self.request_mapping.get("max_tokens_field"):
+            _set_path(payload, self.request_mapping["max_tokens_field"], kwargs.get("max_tokens", self.config.max_tokens))
+
+        # 4. Merge extra kwargs
         for k, v in kwargs.items():
             if k not in ("max_tokens", "temperature"):
                 payload[k] = v
 
         try:
+            # print(f"DEBUG: Sending to {self.endpoint} with params {self.config.query_params}")
             resp = await client.post(
                 self.endpoint,
                 json=payload,
                 headers=self._build_headers(),
+                params=self.config.query_params or {},
             )
             resp.raise_for_status()
             data = resp.json()
@@ -124,9 +166,6 @@ class GenericHTTPConnector(BaseConnector):
         except httpx.HTTPStatusError as exc:
             logger.error("HTTP error %s: %s", exc.response.status_code, exc.response.text[:500])
             return LLMResponse(raw={"error": exc.response.text[:500]})
-        except json.JSONDecodeError as exc:
-            logger.error("Non-JSON response from %s: %s", self.endpoint, exc)
-            return LLMResponse(raw={"error": "Non-JSON response"})
         except Exception as exc:
             logger.error("Generic HTTP request failed: %s", exc)
             return LLMResponse(raw={"error": str(exc)})
@@ -142,10 +181,15 @@ class GenericHTTPConnector(BaseConnector):
         try:
             rm = self.response_mapping
             content = _resolve_path(data, rm["content_path"])
-            input_tokens = _resolve_path(data, rm["input_tokens_path"])
-            output_tokens = _resolve_path(data, rm["output_tokens_path"])
-            finish_reason = _resolve_path(data, rm["finish_reason_path"])
-            model = _resolve_path(data, rm["model_path"])
+            
+            # Handle list-based content (some APIs return tokens as a list)
+            if isinstance(content, list):
+                content = "".join(str(x) for x in content)
+            
+            input_tokens = _resolve_path(data, rm.get("input_tokens_path", ""))
+            output_tokens = _resolve_path(data, rm.get("output_tokens_path", ""))
+            finish_reason = _resolve_path(data, rm.get("finish_reason_path", ""))
+            model = _resolve_path(data, rm.get("model_path", ""))
 
             return LLMResponse(
                 content=str(content) if content is not None else "",

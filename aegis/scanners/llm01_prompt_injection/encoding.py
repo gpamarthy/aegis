@@ -8,7 +8,6 @@ mixed-encoding schemes.
 
 import base64
 import codecs
-import re
 
 from aegis.scanners.scan_base import BaseScanner
 from aegis.core.findings import (

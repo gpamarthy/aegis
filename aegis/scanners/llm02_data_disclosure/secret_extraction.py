@@ -203,7 +203,7 @@ class SecretExtractionScanner(BaseScanner):
         for payload, technique, category_label in _PAYLOADS:
             resp = await self._send(payload)
             if resp is None:
-                break  # budget exhausted
+                break
 
             content = resp.content
             tokens = resp.input_tokens + resp.output_tokens

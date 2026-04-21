@@ -6,7 +6,7 @@ that look like LLM/chatbot interfaces, then probes them to confirm.
 
 import asyncio
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from urllib.parse import urlparse
 
 import httpx

@@ -8,11 +8,9 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import tempfile
 
 import pytest
-import pytest_asyncio
 
 from aegis.connectors.base_llm import BaseConnector, LLMResponse
 from aegis.core.scan_config import ScanConfig, ScanProfile, TargetConfig

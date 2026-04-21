@@ -105,13 +105,13 @@ async def run_scan(config: ScanConfig) -> ScanResult:
         ", ".join(s.name for s in scanners),
     )
 
-    # TODO: parallel scanner execution would cut scan time in half
     sem = asyncio.Semaphore(config.concurrency)
 
     async def _guarded(scanner: BaseScanner) -> list:
         async with sem:
             return await _run_single_scanner(scanner)
 
+    # Run scanners in parallel with isolation
     results = await asyncio.gather(*[_guarded(s) for s in scanners])
 
     # Close the connector
