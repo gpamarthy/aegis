@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timezone
 
 from aegis.core.findings import OWASPCategory, Severity, ScanResult
-from aegis.reporters import BaseReporter
+from aegis.reporters.base import BaseReporter
 from aegis.reporters.compliance import ComplianceMapper
 
 
