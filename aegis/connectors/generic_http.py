@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -47,7 +47,7 @@ def _resolve_path(data: dict | list, path: str) -> Any:
 def _set_path(data: dict, path: str, value: Any) -> None:
     """Set a value in a nested dict/list using a dot-separated path."""
     parts = path.split(".")
-    current = data
+    current: Any = data
     for i, part in enumerate(parts[:-1]):
         next_part = parts[i + 1]
         
@@ -56,8 +56,6 @@ def _set_path(data: dict, path: str, value: Any) -> None:
         
         if part.isdigit():
             idx = int(part)
-            # This case shouldn't really happen for the first part of a dict input,
-            # but for completeness:
             while len(current) <= idx:
                 current.append({})
             current = current[idx]
@@ -83,21 +81,21 @@ class GenericHTTPConnector(BaseConnector):
     def __init__(
         self,
         config: TargetConfig,
-        request_mapping: dict[str, str] | None = None,
-        response_mapping: dict[str, str] | None = None,
+        request_mapping: dict[str, str | None] | None = None,
+        response_mapping: dict[str, str | None] | None = None,
     ):
         super().__init__(config)
         self.endpoint = config.endpoint
-        self.request_mapping = {
+        self.request_mapping = cast(dict[str, str | None], {
             **DEFAULT_REQUEST_MAPPING,
             **(config.request_mapping or {}),
             **(request_mapping or {}),
-        }
-        self.response_mapping = {
+        })
+        self.response_mapping = cast(dict[str, str | None], {
             **DEFAULT_RESPONSE_MAPPING,
             **(config.response_mapping or {}),
             **(response_mapping or {}),
-        }
+        })
         self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:
@@ -119,33 +117,38 @@ class GenericHTTPConnector(BaseConnector):
         payload: dict[str, Any] = {}
         
         # 1. Map messages or prompt (supports nesting via dots)
-        if self.request_mapping.get("prompt_field"):
+        prompt_f = self.request_mapping.get("prompt_field")
+        if prompt_f:
             last_msg = ""
             for msg in reversed(messages):
                 if msg.get("role") == "user":
                     last_msg = msg.get("content", "")
                     break
-            _set_path(payload, self.request_mapping["prompt_field"], last_msg)
+            _set_path(payload, prompt_f, last_msg)
         else:
-            # Map role/content in history if needed
-            role_f = self.request_mapping.get("role_field", "role")
-            cont_f = self.request_mapping.get("content_field", "content")
-            
-            mapped_messages = []
-            for m in messages:
-                mapped_messages.append({
-                    role_f: m.get("role"),
-                    cont_f: m.get("content")
-                })
-            _set_path(payload, self.request_mapping["messages_field"], mapped_messages)
+            messages_f = self.request_mapping.get("messages_field")
+            if messages_f:
+                # Map role/content in history if needed
+                role_f = self.request_mapping.get("role_field", "role") or "role"
+                cont_f = self.request_mapping.get("content_field", "content") or "content"
+                
+                mapped_messages = []
+                for m in messages:
+                    mapped_messages.append({
+                        role_f: m.get("role"),
+                        cont_f: m.get("content")
+                    })
+                _set_path(payload, messages_f, mapped_messages)
 
         # 2. Map model name
-        if self.request_mapping.get("model_field"):
-            _set_path(payload, self.request_mapping["model_field"], self.config.model)
+        model_f = self.request_mapping.get("model_field")
+        if model_f:
+            _set_path(payload, model_f, self.config.model)
 
         # 3. Map max tokens
-        if self.request_mapping.get("max_tokens_field"):
-            _set_path(payload, self.request_mapping["max_tokens_field"], kwargs.get("max_tokens", self.config.max_tokens))
+        max_tokens_f = self.request_mapping.get("max_tokens_field")
+        if max_tokens_f:
+            _set_path(payload, max_tokens_f, kwargs.get("max_tokens", self.config.max_tokens))
 
         # 4. Merge extra kwargs
         for k, v in kwargs.items():
@@ -153,7 +156,6 @@ class GenericHTTPConnector(BaseConnector):
                 payload[k] = v
 
         try:
-            # print(f"DEBUG: Sending to {self.endpoint} with params {self.config.query_params}")
             resp = await client.post(
                 self.endpoint,
                 json=payload,
@@ -180,16 +182,27 @@ class GenericHTTPConnector(BaseConnector):
     def _parse_response(self, data: dict) -> LLMResponse:
         try:
             rm = self.response_mapping
-            content = _resolve_path(data, rm["content_path"])
+            content_p = rm.get("content_path")
+            if not content_p:
+                return LLMResponse(raw=data)
+                
+            content = _resolve_path(data, content_p)
             
             # Handle list-based content (some APIs return tokens as a list)
             if isinstance(content, list):
                 content = "".join(str(x) for x in content)
             
-            input_tokens = _resolve_path(data, rm.get("input_tokens_path", ""))
-            output_tokens = _resolve_path(data, rm.get("output_tokens_path", ""))
-            finish_reason = _resolve_path(data, rm.get("finish_reason_path", ""))
-            model = _resolve_path(data, rm.get("model_path", ""))
+            input_tokens_p = rm.get("input_tokens_path")
+            input_tokens = _resolve_path(data, input_tokens_p) if input_tokens_p else 0
+            
+            output_tokens_p = rm.get("output_tokens_path")
+            output_tokens = _resolve_path(data, output_tokens_p) if output_tokens_p else 0
+            
+            finish_reason_p = rm.get("finish_reason_path")
+            finish_reason = _resolve_path(data, finish_reason_p) if finish_reason_p else ""
+            
+            model_p = rm.get("model_path")
+            model = _resolve_path(data, model_p) if model_p else self.config.model
 
             return LLMResponse(
                 content=str(content) if content is not None else "",

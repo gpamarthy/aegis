@@ -120,8 +120,8 @@ class SQLInjectionScanner(BaseScanner):
                 continue
 
             for pattern, desc, severity in _SQLI_PATTERNS:
-                if re.search(pattern, content, re.IGNORECASE):
-                    match = re.search(pattern, content, re.IGNORECASE)
+                match = re.search(pattern, content, re.IGNORECASE)
+                if match:
                     ctx_start = max(0, match.start() - 40)
                     ctx_end = min(len(content), match.end() + 60)
                     evidence_fragment = content[ctx_start:ctx_end]

@@ -401,7 +401,6 @@ class TestPIIExtractionE2E:
         assert all(f.category == OWASPCategory.LLM02 for f in findings)
 
         # Should detect email and SSN at minimum
-        all_evidence = " ".join(f.evidence for f in findings)
         # The mock returns real-looking PII -- scanner should detect it
         assert any("email" in f.evidence.lower() or "ssn" in f.evidence.lower()
                     for f in findings)

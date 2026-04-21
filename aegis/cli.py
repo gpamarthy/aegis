@@ -182,6 +182,8 @@ def scan(
 
     # Generate report
     try:
+        from aegis.reporters import BaseReporter
+        reporter: BaseReporter
         if output_format == "json":
             from aegis.reporters.json_reporter import JSONReporter
             reporter = JSONReporter()

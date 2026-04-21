@@ -4,8 +4,6 @@ import asyncio
 import os
 import time
 
-REPORT_DIR = os.path.join(os.path.dirname(__file__), "..", "reports")
-
 from aegis.connectors.trynasob import TrynaSobConnector
 from aegis.core.config import ScanConfig, TargetConfig
 from aegis.core.models import ScanResult, Severity
@@ -22,6 +20,7 @@ from aegis.scanners.llm02_data_disclosure.pii_extraction import PIIExtractionSca
 from aegis.scanners.llm05_output_handling.xss_injection import XSSInjectionScanner
 from aegis.scanners.llm06_excessive_agency.tool_enum import ToolEnumerationScanner
 
+REPORT_DIR = os.path.join(os.path.dirname(__file__), "..", "reports")
 TARGET = "http://154.57.164.64:31868"
 
 

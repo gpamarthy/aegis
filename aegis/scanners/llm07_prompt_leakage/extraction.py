@@ -147,5 +147,5 @@ class SystemPromptExtractionScanner(BaseScanner):
             return True, f"Multiple weak indicators found: {matched_weak}"
         return False, ""
 
-_REMEDIATION_BY_TECHNIQUE = {}
+_REMEDIATION_BY_TECHNIQUE: dict[str, str] = {}
 _DEFAULT_REMEDIATION = "Strengthen system prompt anchoring."

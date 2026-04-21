@@ -5,12 +5,10 @@ import os
 import sys
 import time
 
-REPORT_DIR = os.path.join(os.path.dirname(__file__), "..", "reports")
-
 from aegis.discovery.endpoint import discover_llm_endpoint
 from aegis.connectors.chatbot import ChatbotConnector
-from aegis.core.config import ScanConfig, TargetConfig
-from aegis.core.models import ScanResult, Severity
+from aegis.core.scan_config import ScanConfig, TargetConfig
+from aegis.core.findings import ScanResult, Severity
 from aegis.core.cost_tracker import CostTracker
 from aegis.core.rate_limiter import RateLimiter
 from aegis.reporters.html_reporter import HTMLReporter
@@ -49,6 +47,8 @@ try:
     from aegis.scanners.llm01_prompt_injection.output_manipulation import OutputManipulationScanner
 except ImportError:
     OutputManipulationScanner = None
+
+REPORT_DIR = os.path.join(os.path.dirname(__file__), "..", "reports")
 
 SEVERITY_COLOR = {
     Severity.CRITICAL: "\033[91m",
@@ -197,11 +197,16 @@ async def run(target_url: str):
     med = sum(1 for f in all_findings if f.severity == Severity.MEDIUM)
     low = sum(1 for f in all_findings if f.severity == Severity.LOW)
     info = sum(1 for f in all_findings if f.severity == Severity.INFO)
-    if crit: print(f"    \033[91mCRITICAL: {crit}\033[0m")
-    if high: print(f"    \033[93mHIGH:     {high}\033[0m")
-    if med:  print(f"    \033[33mMEDIUM:   {med}\033[0m")
-    if low:  print(f"    \033[96mLOW:      {low}\033[0m")
-    if info: print(f"    \033[90mINFO:     {info}\033[0m")
+    if crit:
+        print(f"    \033[91mCRITICAL: {crit}\033[0m")
+    if high:
+        print(f"    \033[93mHIGH:     {high}\033[0m")
+    if med:
+        print(f"    \033[33mMEDIUM:   {med}\033[0m")
+    if low:
+        print(f"    \033[96mLOW:      {low}\033[0m")
+    if info:
+        print(f"    \033[90mINFO:     {info}\033[0m")
     print(f"\n  HTML Report: {html_path}")
     print(f"  JSON Report: {json_path}")
     print("=" * 60 + "\n")

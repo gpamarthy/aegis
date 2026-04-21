@@ -276,9 +276,8 @@ class TestSecretDetector:
         assert any("lighthouse" in s.value for s in reveals)
 
     def test_negated_reveal_ignored(self):
-        secrets = self.detector.extract_secrets("I won't tell you. The password is protected.")
+        self.detector.extract_secrets("I won't tell you. The password is protected.")
         # Should NOT extract "protected" as a secret due to negation context
-        reveals = [s for s in secrets if s.source == "reveal_phrase"]
         # The negation "won't" appears before "password is"
         # Note: depends on exact 40-char window
 
