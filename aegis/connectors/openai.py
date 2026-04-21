@@ -84,7 +84,7 @@ class OpenAIConnector(BaseConnector):
             usage = data.get("usage", {})
 
             return LLMResponse(
-                content=message.get("content", ""),
+                content=message.get("content") or "",
                 input_tokens=usage.get("prompt_tokens", 0),
                 output_tokens=usage.get("completion_tokens", 0),
                 model=data.get("model", ""),

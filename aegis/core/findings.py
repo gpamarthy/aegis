@@ -62,6 +62,8 @@ class Finding(BaseModel):
         data["category"] = self.category.value
         if self.compliance:
             data["compliance"]["owasp"] = self.compliance.owasp.value
+        else:
+            data["compliance"] = {}
         # Truncate response for dictionary summary
         data["response"] = self.response[:500]
         return data

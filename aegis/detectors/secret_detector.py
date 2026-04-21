@@ -235,7 +235,7 @@ class SecretDetector(BaseDetector):
                 # If it decodes to something printable and short, it might be a secret
                 if 4 < len(decoded) < 64 and decoded.isprintable():
                     results.append(
-                        SecretCandidate(value=decoded, source="base64_decode", confidence=0.75)
+                        SecretCandidate(value=decoded, source="base64_decoded", confidence=0.75)
                     )
             except Exception:
                 continue
@@ -252,6 +252,11 @@ class SecretDetector(BaseDetector):
         # Must start with a letter (skip punctuation-only or numeric responses)
         if not word or not word[0].isalpha():
             return []
+        
+        # Skip extremely common short words that aren't secrets
+        if word.lower() in {"hello", "hi", "sure", "ok", "yes", "no", "test", "ready", "pwned"}:
+            return []
+
         return [
             SecretCandidate(value=word, source="short_response", confidence=0.65)
         ]
