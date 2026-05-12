@@ -9,7 +9,7 @@ description = "AI Exploitation & Guardrail Inspection Suite - Security scanner f
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
-authors = [{name = "Goutham Prasanth Pamarthy", email = "gppamarthy@gmail.com"}]
+authors = [{name = "Goutham Prasanth Pamarthy", email = "pamarthygp@gmail.com"}]
 keywords = ["llm", "security", "ai", "pentesting", "owasp", "prompt-injection"]
 classifiers = [
     "Development Status :: 3 - Alpha",
