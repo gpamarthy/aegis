@@ -1,0 +1,32 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.venv/
+.venv-test/
+.geminiignore
+
+# generated scan output
+reports/*.html
+reports/*.json
+!reports/.gitkeep
+
+# secrets
+.env
+*.pem
+*.key
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# ad-hoc local docs (use docs/ for shared)
+docs/FUTURE_PROJECTS.md
