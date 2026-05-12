@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: #0a0b10;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
+
+  a { color: #00d4ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(180deg, #0f1018 0%, #0a0b10 100%);
+    border-bottom: 1px solid #1a1d2e;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    color: #00d4ff;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+  }
+  .header .subtitle {
+    color: #4a5568;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  .header .version {
+    color: #4a5568;
+    font-size: 0.75rem;
+    border: 1px solid #1a1d2e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  /* Main layout */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* Card style */
+  .card {
+    background: #11131c;
+    border: 1px solid #1a1d2e;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .card h2 {
+    color: #00d4ff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Form */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+  label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  input, select {
+    background: #0a0b10;
+    border: 1px solid #1a1d2e;
+    border-radius: 4px;
+    color: #c9d1d9;
+    padding: 0.6rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus {
+    border-color: #00d4ff;
+  }
+  input::placeholder { color: #3a3f4b; }
+
+  .btn-scan {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+    color: #0a0b10;
+    border: none;
+    border-radius: 4px;
+    padding: 0.75rem 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: opacity 0.2s;
+  }
+  .btn-scan:hover { opacity: 0.9; }
+  .btn-scan:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Summary stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+  .stat-box {
+    background: #0a0b10;
+    border: 1px solid #1a1d2e;
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat-box .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .stat-box .label {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .sev-critical { color: #ff4444; }
+  .sev-high { color: #ff8c00; }
+  .sev-medium { color: #ffd700; }
+  .sev-low { color: #00d4ff; }
+  .sev-info { color: #6b7280; }
+
+  /* Findings */
+  .finding-card {
+    background: #0a0b10;
+    border: 1px solid #1a1d2e;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .finding-header {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: background 0.15s;
+  }
+  .finding-header:hover { background: #151722; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #0a0b10;
+    white-space: nowrap;
+  }
+  .badge-critical { background: #ff4444; }
+  .badge-high { background: #ff8c00; }
+  .badge-medium { background: #ffd700; }
+  .badge-low { background: #00d4ff; }
+  .badge-info { background: #6b7280; color: #c9d1d9; }
+
+  .finding-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex: 1;
+  }
+  .finding-arrow {
+    color: #4a5568;
+    transition: transform 0.2s;
+    font-size: 0.7rem;
+  }
+  .finding-card.open .finding-arrow { transform: rotate(90deg); }
+
+  .finding-body {
+    display: none;
+    padding: 0 1rem 1rem;
+    font-size: 0.8rem;
+  }
+  .finding-card.open .finding-body { display: block; }
+
+  .finding-body dt {
+    color: #6b7280;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    margin-top: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  .finding-body dd {
+    margin-top: 0.25rem;
+    color: #9ca3af;
+  }
+  .finding-body pre {
+    background: #0d0e16;
+    border: 1px solid #1a1d2e;
+    border-radius: 4px;
+    padding: 0.6rem;
+    margin-top: 0.3rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    color: #8b949e;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* Scan history table */
+  .scan-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .scan-table th {
+    text-align: left;
+    color: #6b7280;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #1a1d2e;
+  }
+  .scan-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #0f1018;
+  }
+  .scan-table tr:hover td { background: #151722; }
+
+  /* Status indicator */
+  .status-running {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #00d4ff;
+  }
+  .status-running::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #00d4ff;
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .status-idle { color: #4a5568; }
+
+  /* Alerts / messages */
+  .alert {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .alert-error {
+    background: #1a0a0a;
+    border: 1px solid #ff4444;
+    color: #ff6666;
+  }
+  .alert-success {
+    background: #0a1a0f;
+    border: 1px solid #00cc66;
+    color: #00ff80;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>AEGIS</h1>
+    <div class="subtitle">AI Exploitation &amp; Guardrail Inspection Suite</div>
+  </div>
+  <div class="version">v0.1.0</div>
+</div>
+
+<div class="container">
+
+  <!-- Status bar -->
+  <div id="status-bar" class="card" style="padding: 0.75rem 1.5rem;">
+    <span id="status-text" class="status-idle">Idle</span>
+  </div>
+
+  <!-- Alert area -->
+  <div id="alert-area" class="hidden"></div>
+
+  <!-- Scan form -->
+  <div class="card">
+    <h2>New Scan</h2>
+    <form id="scan-form" class="form-grid">
+      <div class="form-group">
+        <label for="target">Target URL / Endpoint</label>
+        <input type="text" id="target" name="target" placeholder="https://api.openai.com/v1/chat/completions" required>
+      </div>
+      <div class="form-group">
+        <label for="provider">Provider</label>
+        <select id="provider" name="provider">
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="ollama">Ollama</option>
+          <option value="http">Generic HTTP</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="model">Model</label>
+        <input type="text" id="model" name="model" placeholder="gpt-4o-mini" value="gpt-4o-mini">
+      </div>
+      <div class="form-group">
+        <label for="profile">Scan Profile</label>
+        <select id="profile" name="profile">
+          <option value="quick">Quick</option>
+          <option value="standard">Standard</option>
+          <option value="full">Full</option>
+          <option value="stealth">Stealth</option>
+        </select>
+      </div>
+      <div class="form-group full-width">
+        <label for="api_key">API Key</label>
+        <input type="password" id="api_key" name="api_key" placeholder="sk-...">
+      </div>
+      <button type="submit" class="btn-scan" id="btn-scan">Launch Scan</button>
+    </form>
+  </div>
+
+  <!-- Summary stats (hidden until scan results exist) -->
+  <div id="summary-section" class="card hidden">
+    <h2>Scan Summary</h2>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="value" id="total-findings">0</div><div class="label">Total Findings</div></div>
+      <div class="stat-box"><div class="value sev-critical" id="critical-count">0</div><div class="label">Critical</div></div>
+      <div class="stat-box"><div class="value sev-high" id="high-count">0</div><div class="label">High</div></div>
+      <div class="stat-box"><div class="value sev-medium" id="medium-count">0</div><div class="label">Medium</div></div>
+      <div class="stat-box"><div class="value sev-low" id="low-count">0</div><div class="label">Low</div></div>
+      <div class="stat-box"><div class="value" id="scan-duration">0s</div><div class="label">Duration</div></div>
+    </div>
+  </div>
+
+  <!-- Findings list -->
+  <div id="findings-section" class="card hidden">
+    <h2>Findings</h2>
+    <div id="findings-list"></div>
+  </div>
+
+  <!-- Scan history -->
+  <div class="card">
+    <h2>Scan History</h2>
+    <div id="scan-history">
+      {% if scans %}
+      <table class="scan-table">
+        <thead>
+          <tr>
+            <th>Target</th>
+            <th>Profile</th>
+            <th>Findings</th>
+            <th>Duration</th>
+            <th>Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in scans %}
+          <tr style="cursor:pointer" onclick="loadScan({{ loop.index0 }})">
+            <td>{{ scan.target }}</td>
+            <td>{{ scan.profile }}</td>
+            <td>{{ scan.findings | length }}</td>
+            <td>{{ "%.1f" | format(scan.duration_seconds) }}s</td>
+            <td>${{ "%.4f" | format(scan.total_cost_usd) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color: #4a5568; font-size: 0.8rem;">No scans yet. Launch your first scan above.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+const form = document.getElementById('scan-form');
+const btnScan = document.getElementById('btn-scan');
+const statusText = document.getElementById('status-text');
+const alertArea = document.getElementById('alert-area');
+const summarySection = document.getElementById('summary-section');
+const findingsSection = document.getElementById('findings-section');
+const findingsList = document.getElementById('findings-list');
+
+function showAlert(message, type) {
+  alertArea.className = `alert alert-${type}`;
+  alertArea.textContent = message;
+  alertArea.classList.remove('hidden');
+  setTimeout(() => alertArea.classList.add('hidden'), 8000);
+}
+
+function setStatus(text, running) {
+  statusText.textContent = text;
+  statusText.className = running ? 'status-running' : 'status-idle';
+}
+
+function renderSummary(result) {
+  const s = result.summary || {};
+  document.getElementById('total-findings').textContent = s.total_findings || result.findings.length;
+  document.getElementById('critical-count').textContent = s.critical || 0;
+  document.getElementById('high-count').textContent = s.high || 0;
+  document.getElementById('medium-count').textContent = s.medium || 0;
+  document.getElementById('low-count').textContent = result.findings.filter(f => f.severity === 'low').length;
+  document.getElementById('scan-duration').textContent = (s.duration_seconds || result.duration_seconds || 0).toFixed(1) + 's';
+  summarySection.classList.remove('hidden');
+}
+
+function severityBadge(severity) {
+  return `<span class="badge badge-${severity}">${severity.toUpperCase()}</span>`;
+}
+
+function renderFindings(findings) {
+  if (!findings || findings.length === 0) {
+    findingsList.innerHTML = '<p style="color: #4a5568; font-size: 0.8rem;">No findings detected.</p>';
+    findingsSection.classList.remove('hidden');
+    return;
+  }
+
+  let html = '';
+  findings.forEach((f, i) => {
+    html += `
+      <div class="finding-card" id="finding-${i}">
+        <div class="finding-header" onclick="this.parentElement.classList.toggle('open')">
+          ${severityBadge(f.severity)}
+          <span class="finding-title">${escapeHtml(f.title)}</span>
+          <span class="finding-arrow">&#9654;</span>
+        </div>
+        <div class="finding-body">
+          <dl>
+            <dt>Description</dt>
+            <dd>${escapeHtml(f.description)}</dd>
+            <dt>Category</dt>
+            <dd>${escapeHtml(f.category)}</dd>
+            <dt>Technique</dt>
+            <dd>${escapeHtml(f.technique)}</dd>
+            <dt>Scanner</dt>
+            <dd>${escapeHtml(f.scanner_name)}</dd>
+            <dt>Payload</dt>
+            <dd><pre>${escapeHtml(f.payload || '')}</pre></dd>
+            <dt>Response (truncated)</dt>
+            <dd><pre>${escapeHtml(f.response || '')}</pre></dd>
+            ${f.evidence ? `<dt>Evidence</dt><dd><pre>${escapeHtml(f.evidence)}</pre></dd>` : ''}
+            ${f.remediation ? `<dt>Remediation</dt><dd>${escapeHtml(f.remediation)}</dd>` : ''}
+          </dl>
+        </div>
+      </div>
+    `;
+  });
+
+  findingsList.innerHTML = html;
+  findingsSection.classList.remove('hidden');
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  btnScan.disabled = true;
+  setStatus('Scanning...', true);
+
+  const payload = {
+    target: document.getElementById('target').value,
+    provider: document.getElementById('provider').value,
+    model: document.getElementById('model').value,
+    api_key: document.getElementById('api_key').value,
+    profile: document.getElementById('profile').value,
+  };
+
+  try {
+    const resp = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+
+    const result = await resp.json();
+    setStatus('Scan complete', false);
+    showAlert(`Scan finished: ${result.findings.length} finding(s) detected.`, 'success');
+    renderSummary(result);
+    renderFindings(result.findings);
+  } catch (err) {
+    setStatus('Error', false);
+    showAlert(`Scan failed: ${err.message}`, 'error');
+  } finally {
+    btnScan.disabled = false;
+  }
+});
+
+async function loadScan(index) {
+  try {
+    const resp = await fetch(`/api/scans/${index}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const result = await resp.json();
+    renderSummary(result);
+    renderFindings(result.findings);
+  } catch (err) {
+    showAlert(`Could not load scan: ${err.message}`, 'error');
+  }
+}
+
+// Load scans on page load
+(async () => {
+  try {
+    const resp = await fetch('/api/scans');
+    if (resp.ok) {
+      const scans = await resp.json();
+      if (scans.length > 0) {
+        const latest = scans[scans.length - 1];
+        renderSummary(latest);
+        renderFindings(latest.findings);
+      }
+    }
+  } catch (e) {
+    // Ignore - no scans yet
+  }
+})();
+</script>
+
+</body>
+</html>

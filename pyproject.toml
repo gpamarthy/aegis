@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-llm"
+version = "0.1.0"
+description = "AI Exploitation & Guardrail Inspection Suite - Security scanner for LLM applications"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Goutham Prasanth Pamarthy", email = "gppamarthy@gmail.com"}]
+keywords = ["llm", "security", "ai", "pentesting", "owasp", "prompt-injection"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "httpx>=0.27.0",
+    "litellm>=1.40.0",
+    "click>=8.1.0",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+    "jinja2>=3.1.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.29.0",
+    "python-multipart>=0.0.9",
+    "aiosqlite>=0.20.0",
+    "mitmproxy>=10.0.0",
+    "structlog>=24.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4.0"]
+
+[project.scripts]
+aegis = "aegis.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["aegis*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
