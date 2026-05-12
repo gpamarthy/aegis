@@ -1,5 +1,6 @@
 """Token exhaustion / denial-of-wallet scanner for LLM10: Unbounded Consumption."""
 
+from typing import Any
 from aegis.scanners.scan_base import BaseScanner
 from aegis.core.findings import Finding, Severity, OWASPCategory, ComplianceMapping
 
@@ -97,13 +98,13 @@ class TokenExhaustionScanner(BaseScanner):
     )
     category = OWASPCategory.LLM10
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.output_token_threshold: int = _DEFAULT_OUTPUT_TOKEN_THRESHOLD
         self.total_token_threshold: int = _DEFAULT_TOTAL_TOKEN_THRESHOLD
 
     async def run(self) -> list[Finding]:
-        per_request_stats: list[dict] = []
+        per_request_stats: list[dict[str, Any]] = []
 
         for payload, technique in _PAYLOADS:
             resp = await self._send(payload)
