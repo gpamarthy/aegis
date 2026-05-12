@@ -1,11 +1,10 @@
 """Tests for XSSDetector, SQLiDetector, and SecretDetector classes."""
 from __future__ import annotations
 
-import pytest
 
 from aegis.detectors.xss_detector import XSSDetector, XSSMatch
-from aegis.detectors.sqli_detector import SQLiDetector, SQLiMatch
-from aegis.detectors.secret_detector import SecretDetector, SecretCandidate
+from aegis.detectors.sqli_detector import SQLiDetector
+from aegis.detectors.secret_detector import SecretDetector
 
 
 # =========================================================================

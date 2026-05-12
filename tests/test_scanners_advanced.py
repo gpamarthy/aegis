@@ -7,7 +7,7 @@ from __future__ import annotations
 import pytest
 
 from aegis.connectors.base_llm import BaseConnector, LLMResponse
-from aegis.core.scan_config import ScanConfig, ScanProfile, TargetConfig
+from aegis.core.scan_config import ScanConfig, TargetConfig
 from aegis.core.cost_tracker import CostTracker
 from aegis.core.findings import Finding, OWASPCategory, Severity
 from aegis.core.rate_limiter import RateLimiter

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from aegis.core.findings import ComplianceMapping, Finding, OWASPCategory, Severity
+from aegis.core.findings import ComplianceMapping, Finding, OWASPCategory
 from aegis.reporters.compliance import ComplianceMapper
 
 

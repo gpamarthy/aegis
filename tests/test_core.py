@@ -1,7 +1,6 @@
 """Unit tests for AEGIS core modules: models, cost tracker, session, rate limiter."""
 from __future__ import annotations
 
-import asyncio
 import time
 
 import pytest

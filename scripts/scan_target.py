@@ -83,7 +83,7 @@ async def run(target_url: str):
         print(f"  \033[92m[+] Description:    {discovery.description}\033[0m")
 
     # Phase 2: Initialize scanner
-    print(f"\n\033[93m[*] Phase 2: Initializing scanners...\033[0m")
+    print("\n\033[93m[*] Phase 2: Initializing scanners...\033[0m")
 
     target_config = TargetConfig(
         endpoint=target_url,

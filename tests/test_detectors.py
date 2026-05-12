@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import pytest
 
-from aegis.detectors.base_detector import DetectionResult
 from aegis.detectors.string_match import StringMatchDetector
 from aegis.detectors.pattern import PatternDetector
 from aegis.detectors.behavioral import BehavioralDetector

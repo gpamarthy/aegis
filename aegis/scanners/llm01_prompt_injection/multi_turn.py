@@ -21,7 +21,6 @@ from aegis.core.findings import (
     OWASPCategory,
     Severity,
 )
-from aegis.core.session import ConversationSession
 
 # ---------------------------------------------------------------------------
 # Compliance mapping shared by every finding in this scanner

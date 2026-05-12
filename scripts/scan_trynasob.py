@@ -30,8 +30,8 @@ async def run():
     print("  AEGIS v0.1.0 - AI Exploitation & Guardrail Inspection Suite")
     print("=" * 60)
     print(f"\n  Target: {TARGET}")
-    print(f"  Type:   TrynaSob Ransomware AI Support Chat")
-    print(f"  Mode:   Full OWASP LLM Top 10 Scan")
+    print("  Type:   TrynaSob Ransomware AI Support Chat")
+    print("  Mode:   Full OWASP LLM Top 10 Scan")
     print("=" * 60 + "\n")
 
     target_config = TargetConfig(

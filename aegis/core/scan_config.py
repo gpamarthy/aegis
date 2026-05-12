@@ -16,9 +16,12 @@ class TargetConfig:
     model: str = "gpt-4o-mini"
     api_key: str = ""
     headers: dict[str, str] = field(default_factory=dict)
+    query_params: dict[str, str] = field(default_factory=dict)
     system_prompt: str | None = None
     max_tokens: int = 1024
     temperature: float = 0.7
+    request_mapping: dict[str, str] = field(default_factory=dict)
+    response_mapping: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

@@ -174,7 +174,7 @@ async def solve_level(client: httpx.AsyncClient, jwt: str, csrf: str, level: int
 
 
 async def main():
-    print(f"\n  PROMETHEON SOLVER")
+    print("\n  PROMETHEON SOLVER")
     print(f"  Target: {BASE}")
 
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -194,14 +194,14 @@ async def main():
             new_level = await get_level(jwt)
             if new_level == level:
                 # Might be the flag level
-                print(f"\n  CHECKING FOR FLAG...")
+                print("\n  CHECKING FOR FLAG...")
                 flag_resp = await verify(client, jwt, csrf, pwd)
                 if "HTB" in str(flag_resp):
                     print(f"  FLAG: {flag_resp}")
                 break
 
         print(f"\n{'='*60}")
-        print(f"  PASSWORDS FOUND:")
+        print("  PASSWORDS FOUND:")
         for lvl, pwd in passwords.items():
             print(f"    Level {lvl}: {pwd}")
         print(f"{'='*60}")
