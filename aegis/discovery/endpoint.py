@@ -139,7 +139,7 @@ async def discover_llm_endpoint(target_url: str, timeout: float = 15.0) -> Disco
         internal_links = re.findall(r'href="(/[^"]*\.html?)"', html)
         internal_links += re.findall(r"href='(/[^']*\.html?)'", html)
         # Filter out links that try path traversal or protocol smuggling
-        internal_links = [l for l in internal_links if not l.startswith("//") and ".." not in l]
+        internal_links = [link for link in internal_links if not link.startswith("//") and ".." not in link]
         for link in internal_links[:5]:
             if link in pages_checked:
                 continue

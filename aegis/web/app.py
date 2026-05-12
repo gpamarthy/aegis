@@ -92,15 +92,13 @@ def _result_to_dict(result: ScanResult, index: int) -> dict:
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(
-        "dashboard.html",
-        {"request": request, "scans": _scan_results},
+        request, "dashboard.html", {"scans": _scan_results}
     )
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse(
-        "dashboard.html",
-        {"request": request, "scans": _scan_results},
+        request, "dashboard.html", {"scans": _scan_results}
     )
 
 # Routes - API

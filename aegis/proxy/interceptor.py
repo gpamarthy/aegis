@@ -142,6 +142,9 @@ class LLMProxyInterceptor:
 
         provider = _detect_provider(url, headers)
 
+        if not isinstance(body, dict):
+            body = {"_raw": str(body)}
+
         session = ProxySession(
             index=len(self._history),
             request_url=url,
@@ -152,10 +155,11 @@ class LLMProxyInterceptor:
         )
 
         # Parse the request
-        if provider == "openai":
-            session.parsed_request = parse_openai_request(body)
-        elif provider == "anthropic":
-            session.parsed_request = parse_anthropic_request(body)
+        if isinstance(body, dict):
+            if provider == "openai":
+                session.parsed_request = parse_openai_request(body)
+            elif provider == "anthropic":
+                session.parsed_request = parse_anthropic_request(body)
 
         self._pending_session = session
         return session
@@ -179,16 +183,20 @@ class LLMProxyInterceptor:
             except (json.JSONDecodeError, TypeError):
                 body = {"_raw": str(body)}
 
+        if not isinstance(body, dict):
+            body = {"_raw": str(body)}
+
         session = self._pending_session
         session.response_status = status
         session.response_headers = dict(headers)
         session.response_body = body
 
         # Parse the response
-        if session.provider == "openai":
-            session.parsed_response = parse_openai_response(body)
-        elif session.provider == "anthropic":
-            session.parsed_response = parse_anthropic_response(body)
+        if isinstance(body, dict):
+            if session.provider == "openai":
+                session.parsed_response = parse_openai_response(body)
+            elif session.provider == "anthropic":
+                session.parsed_response = parse_anthropic_response(body)
 
         self._history.append(session)
         self._pending_session = None

@@ -9,11 +9,10 @@ Usage::
     extractions = load_payloads("extractions")
 """
 
-import os
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # type: ignore
 
 _PAYLOAD_DIR = Path(__file__).resolve().parent
 

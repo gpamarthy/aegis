@@ -1,7 +1,7 @@
 """Regex-based detector for sensitive data leakage in LLM responses."""
 
 import re
-import yaml
+import yaml  # type: ignore
 import pathlib
 from dataclasses import dataclass
 from typing import Sequence
