@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 async def run_accuracy_test():
-    print("🚀 Starting Vulnerable Mock LLM...")
+    print("Starting Vulnerable Mock LLM...")
     mock_proc = subprocess.Popen(
         [sys.executable, "scripts/vulnerable_llm.py"],
         stdout=sys.stdout,
@@ -79,7 +79,7 @@ async def run_accuracy_test():
              print(f"❌ Report total_findings ({summary.get('total_findings')}) mismatch findings list ({len(findings)})")
              return False
         
-        print("✨ Accuracy Test Complete!")
+        print("Accuracy Test Complete!")
         return not missing
 
     finally:

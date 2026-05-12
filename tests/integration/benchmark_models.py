@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 async def run_benchmark():
-    print("🚀 Starting Multi-Flavor Vulnerable Mock LLM...")
+    print("Starting Multi-Flavor Vulnerable Mock LLM...")
     mock_proc = subprocess.Popen(
         [sys.executable, "scripts/vulnerable_llm.py"],
         stdout=subprocess.DEVNULL,
@@ -110,5 +110,5 @@ async def run_benchmark():
 
 if __name__ == "__main__":
     success = asyncio.run(run_benchmark())
-    print("\n" + ("✨ ALL MODELS VALIDATED SUCCESSFULLY!" if success else "❌ SOME MODELS FAILED VALIDATION."))
+    print("\n" + ("ALL MODELS VALIDATED SUCCESSFULLY!" if success else "❌ SOME MODELS FAILED VALIDATION."))
     sys.exit(0 if success else 1)

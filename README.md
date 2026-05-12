@@ -6,7 +6,7 @@
 
 **AI Exploitation & Guardrail Inspection Suite**
 
-Aegis is a comprehensive security scanner for Large Language Model (LLM) applications. It surfaces vulnerabilities such as prompt injection, sensitive information disclosure, and improper output handling by probing endpoints with specialized payloads and monitoring responses against a robust suite of detectors.
+Aegis is a security scanner for LLM applications. It probes endpoints with specialized payloads and runs the responses through pattern detectors to surface vulnerabilities like prompt injection, sensitive data leakage, and improper output handling.
 
 ## ⚠️ Disclaimer
 
@@ -14,7 +14,7 @@ This tool is for legal, authorized security testing only. The authors are not re
 
 ## Features
 
-- **Multi-Model Support**: Powered by `litellm`, Aegis scans OpenAI, Anthropic, Ollama, and generic HTTP endpoints.
+- **Multi-Model Support**: Uses `litellm` so scans can target OpenAI, Anthropic, Ollama, and generic HTTP endpoints from the same CLI.
 - **YAML-Based Detection**: Patterns and indicators are managed in declarative YAML files for easy tuning.
 - **Stateful Analysis**: Scan findings and telemetry are persisted in a local SQLite database for historical tracking.
 - **SIEM-Ready Logging**: Structured JSON logging via `structlog` for integration with modern security operations.
