@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion / question
+    url: https://github.com/gpamarthy/aegis/discussions
+    about: Ask questions, share scanner configs, propose ideas
+  - name: Security report
+    url: https://github.com/gpamarthy/aegis/blob/main/SECURITY.md
+    about: Do not file security issues publicly - see SECURITY.md

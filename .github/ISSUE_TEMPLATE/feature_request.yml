@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest a new scanner, connector, or capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve
+      description: Describe the attack surface or workflow that isn't covered today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: One or two paragraphs. Not a full design.
+    validations:
+      required: true
+
+  - type: input
+    id: category
+    attributes:
+      label: OWASP LLM category (if applicable)
+      placeholder: 'LLM03 supply chain / LLM05 improper output handling / etc.'
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else you tried or thought about.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This isn't a request to scan a non-LLM target (web app, API generally) - aegis targets LLM endpoints
+        - label: This isn't a request to add a GUI - aegis stays CLI-first
