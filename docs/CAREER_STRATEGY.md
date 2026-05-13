@@ -112,7 +112,7 @@ Workers with AI skills earn **56% more** than peers in similar roles. AI Red Tea
 ### The Pattern
 1. **Find a real painful problem** where current solutions are too slow, too manual, or too expensive
 2. **Build a tool in Go/Rust** that does ONE thing 10x better
-3. **Make it extensible** so community becomes contributors (templates, plugins, rules)
+3. **Easy to fork** so the community becomes contributors (templates, plugins, rules)
 4. **Professional presentation** - logo, animated demo GIF, one-command install, dedicated docs site
 5. **Engage community** - conference talks, bug bounty adoption, awesome-list inclusion, Twitter/X
 6. **Open core monetization** - CLI free, cloud/SaaS version with team features for enterprises

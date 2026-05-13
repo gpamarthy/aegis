@@ -10,7 +10,7 @@
 
 Each project scored on 5 dimensions (1-5 scale):
 
-- **Profile Alignment** - Does it leverage your OSEP/CRTE/AWS/DFIR strengths?
+- **Profile Alignment** - Does it use your OSEP/CRTE/AWS/DFIR strengths?
 - **Skills Gap Match** - Does it address what employers can't find (AI, cloud, zero trust, DFIR)?
 - **Portfolio Differentiation** - Will it make you stand out vs other candidates?
 - **Open-Source Traction Potential** - Could this get stars and real users?
@@ -29,8 +29,8 @@ Each project scored on 5 dimensions (1-5 scale):
 - AI Red Teamer roles pay $160K-$225K and are exploding
 - Prompt injection is **OWASP LLM #1** - the hottest problem in security right now
 - No dominant open-source solution exists yet - **greenfield opportunity**
-- Directly parallels how Nuclei dominated vuln scanning: template-based, community-extensible
-- Shows you're not just a pentester - you understand the cutting edge
+- Directly parallels how Nuclei dominated vuln scanning: template-based, community-driven
+- Shows you're not just a pentester - you understand where the field is moving
 
 **Upgraded Architecture:**
 ```
@@ -315,7 +315,7 @@ depshield/
 | 23 | 9 | SBOM-Sentinel | Compliance + supply chain |
 | 24 | 31 | InfraAsCode-Sec | DevSecOps shift-left |
 | 25 | 44 | IRPlaybook-Engine | DFIR automation |
-| 26 | 19 | AIAgent-Firewall | Cutting edge AI agent security |
+| 26 | 19 | AIAgent-Firewall | Frontier AI-agent security |
 | 27 | 1 | RansomShield | Complex endpoint agent - high reward |
 | 28 | 39 | ComplianceOS | Compliance automation |
 | 29 | 24 | MFA-Fortress | Identity hardening |

@@ -199,10 +199,9 @@ class TestBehavioralDetector:
             context={"expected_refusal": True},
         )
         # Model refused, so no compliance shift should be detected.
-        # However, other heuristics may fire if running all modes.
-        # With no mode specified, all are run. The refusal means
-        # compliance_shift won't fire, but other checks may or may not.
-        # Let's verify no compliance_shift specifically.
+        # With no mode specified, all heuristics run. Refusal blocks
+        # compliance_shift; other checks may still fire. Only assert
+        # compliance_shift is absent.
         if result.detected:
             assert "compliance_shift" not in result.evidence
 
