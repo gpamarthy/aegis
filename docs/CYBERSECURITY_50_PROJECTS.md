@@ -157,7 +157,7 @@
 
 ### Project 17: ModelGuard - ML Model Security Testing & Adversarial Robustness Platform
 **Problem:** Data poisoning, model inversion, and model extraction attacks target ML systems. Most ML models are deployed without security testing.
-**Solution:** Comprehensive ML security testing platform that performs adversarial robustness testing, data poisoning detection, model extraction resistance evaluation, privacy leakage assessment, and fairness auditing.
+**Solution:** ML security testing platform covering adversarial robustness, data poisoning detection, model extraction resistance, privacy leakage assessment, and fairness auditing.
 **Tech Stack:** Python, PyTorch/TensorFlow, ART (Adversarial Robustness Toolbox), CleverHans, FastAPI, Jupyter integration, React dashboard
 **End Product:** Testing framework + CI/CD plugin + risk scoring + remediation recommendations + compliance reports (EU AI Act)
 **Impact:** Security testing becomes a standard part of the ML deployment pipeline
@@ -389,7 +389,7 @@
 ---
 
 ### Project 42: PolicyBot - Security Policy Generation & Compliance Checker
-**Problem:** Organizations need comprehensive security policies (acceptable use, incident response, data handling, etc.) that align with their regulatory requirements. Most policies are outdated or copy-pasted.
+**Problem:** Organizations need security policies (acceptable use, incident response, data handling, etc.) that align with their regulatory requirements. Most policies are outdated or copy-pasted.
 **Solution:** AI-assisted security policy generation and continuous compliance checking. Generates tailored policies based on organization profile, regulatory requirements, and industry, then continuously monitors for policy violations.
 **Tech Stack:** Python, LLM integration (for policy drafting), policy templates, compliance rule engine, document diffing, PostgreSQL, FastAPI, React editor
 **End Product:** Policy generation wizard + template library + compliance checker + version control + employee attestation + audit reporting
